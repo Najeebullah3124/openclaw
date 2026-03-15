@@ -326,14 +326,15 @@ function collectGatewayConfigFindings(
     });
   }
 
-  if (cfg.gateway?.controlUi?.allowInsecureAuth === true) {
+  if (cfg.gateway && cfg.gateway.controlUi?.allowInsecureAuth !== false) {
     findings.push({
       checkId: "gateway.control_ui.insecure_auth",
       severity: "critical",
-      title: "Control UI allows insecure HTTP auth",
+      title: "Control UI allows token-only auth without device pairing",
       detail:
-        "gateway.controlUi.allowInsecureAuth=true allows token-only auth over HTTP and skips device identity.",
-      remediation: "Disable it or switch to HTTPS (Tailscale Serve) or localhost.",
+        "Control UI can connect with token only (no device approval). Set gateway.controlUi.allowInsecureAuth: false to require device pairing.",
+      remediation:
+        "Set gateway.controlUi.allowInsecureAuth to false, or use HTTPS (Tailscale Serve) / localhost.",
     });
   }
 

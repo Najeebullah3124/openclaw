@@ -403,12 +403,14 @@ export function attachGatewayWsMessageHandler(params: {
         const hasTokenAuth = Boolean(connectParams.auth?.token);
         const hasPasswordAuth = Boolean(connectParams.auth?.password);
         const hasSharedAuth = hasTokenAuth || hasPasswordAuth;
+        // Default allowInsecureAuth to true so Control UI can connect from mobile with token only (no device pairing).
         const allowInsecureControlUi =
-          isControlUi && configSnapshot.gateway?.controlUi?.allowInsecureAuth === true;
+          isControlUi && configSnapshot.gateway?.controlUi?.allowInsecureAuth !== false;
         const disableControlUiDeviceAuth =
           isControlUi && configSnapshot.gateway?.controlUi?.dangerouslyDisableDeviceAuth === true;
         const allowControlUiBypass = allowInsecureControlUi || disableControlUiDeviceAuth;
-        const device = disableControlUiDeviceAuth ? null : deviceRaw;
+        // When allowInsecureControlUi is true, skip device so token-only auth is enough (no pairing required).
+        const device = disableControlUiDeviceAuth || allowInsecureControlUi ? null : deviceRaw;
 
         const authResult = await authorizeGatewayConnect({
           auth: resolvedAuth,
@@ -676,6 +678,8 @@ export function attachGatewayWsMessageHandler(params: {
         }
 
         const skipPairing = allowControlUiBypass && sharedAuthOk;
+        // Auto-approve Control UI devices when they connect with valid token (do pairing on user's behalf).
+        const autoApproveControlUi = isControlUi && sharedAuthOk;
         if (device && devicePublicKey && !skipPairing) {
           const requirePairing = async (reason: string, _paired?: { deviceId: string }) => {
             const pairing = await requestDevicePairing({
@@ -688,7 +692,7 @@ export function attachGatewayWsMessageHandler(params: {
               role,
               scopes,
               remoteIp: reportedClientIp,
-              silent: isLocalClient,
+              silent: isLocalClient || autoApproveControlUi,
             });
             const context = buildRequestContext();
             if (pairing.request.silent === true) {

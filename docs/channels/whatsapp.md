@@ -393,6 +393,21 @@ WhatsApp sends audio as **voice notes** (PTT bubble).
 - Symptom: `channels status` shows `linked: false` or warns “Not linked”.
 - Fix: run `openclaw channels login` on the gateway host and scan the QR (WhatsApp → Settings → Linked Devices).
 
+**“Can’t link the device” (WhatsApp shows this when you scan the QR)**
+
+This message comes from **WhatsApp on your phone**, not OpenClaw. Try in order:
+
+1. **Fresh QR** — The QR expires after a short time. In the Control UI click **Logout** (if available), then **Show QR** again, and scan the new QR within a minute.
+2. **Linked device limit** — WhatsApp allows only a limited number of linked devices (e.g. 4). On your phone: WhatsApp → Settings → Linked Devices → remove an old or unused device, then scan again.
+3. **Clear gateway session and relink** — On the gateway host run:
+   ```bash
+   openclaw channels logout --channel whatsapp
+   ```
+   If your credentials path is custom, you may need to remove the WhatsApp auth folder (e.g. `~/.openclaw/credentials/whatsapp/`) manually. Then run `openclaw channels login` and show a new QR.
+4. **Phone and gateway** — Phone must have internet; avoid VPNs or firewalls that block WhatsApp. If the gateway is on a remote server, ensure it is reachable (WhatsApp relays via their servers; time sync and connectivity still matter).
+5. **WhatsApp version** — Update WhatsApp on your phone to the latest version.
+6. **Use Node** — Run the gateway with **Node**, not Bun; Baileys is unreliable on Bun.
+
 **Linked but disconnected / reconnect loop**
 
 - Symptom: `channels status` shows `running, disconnected` or warns “Linked but disconnected”.

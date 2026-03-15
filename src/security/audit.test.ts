@@ -295,7 +295,7 @@ describe("security audit", () => {
     );
   });
 
-  it("warns when control UI allows insecure auth", async () => {
+  it("warns when control UI allows insecure auth (default or true)", async () => {
     const cfg: OpenClawConfig = {
       gateway: {
         controlUi: { allowInsecureAuth: true },
@@ -316,6 +316,22 @@ describe("security audit", () => {
         }),
       ]),
     );
+  });
+
+  it("does not warn when control UI allowInsecureAuth is false", async () => {
+    const cfg: OpenClawConfig = {
+      gateway: {
+        controlUi: { allowInsecureAuth: false },
+      },
+    };
+
+    const res = await runSecurityAudit({
+      config: cfg,
+      includeFilesystem: false,
+      includeChannelSecurity: false,
+    });
+
+    expect(res.findings.map((f) => f.checkId)).not.toContain("gateway.control_ui.insecure_auth");
   });
 
   it("warns when control UI device auth is disabled", async () => {
